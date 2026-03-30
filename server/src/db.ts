@@ -3,13 +3,11 @@ import dotenv from "dotenv";
 
 dotenv.config();
 
+console.log("DATABASE_URL present:", !!process.env.DATABASE_URL);
+
 // Railway provides DATABASE_URL; fall back to individual vars for local dev
 const pool = process.env.DATABASE_URL
-  ? mysql.createPool({
-      uri: process.env.DATABASE_URL,
-      waitForConnections: true,
-      connectionLimit: 10,
-    })
+  ? mysql.createPool(process.env.DATABASE_URL)
   : mysql.createPool({
       host: process.env.DB_HOST || "localhost",
       user: process.env.DB_USER || "root",
