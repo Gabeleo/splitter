@@ -165,7 +165,7 @@ app.delete("/api/purchases/:id", async (req, res) => {
 });
 
 // SPA fallback — serve index.html for non-API routes
-app.get("*", (_req, res) => {
+app.get("/{*splat}", (_req, res) => {
   res.sendFile(path.join(clientDist, "index.html"));
 });
 
