@@ -12,10 +12,20 @@ interface Purchase {
   id: number;
   description: string;
   amount: number;
+  currency: string;
   paid_by: string;
   created_at: string;
   splits: Split[];
 }
+
+const CURRENCIES = [
+  { code: "USD", symbol: "$", name: "US Dollar" },
+  { code: "EUR", symbol: "\u20AC", name: "Euro" },
+  { code: "JPY", symbol: "\u00A5", name: "Japanese Yen" },
+  { code: "GBP", symbol: "\u00A3", name: "British Pound" },
+  { code: "CNY", symbol: "\u00A5", name: "Chinese Yuan" },
+  { code: "COP", symbol: "COL$", name: "Colombian Peso" },
+];
 
 interface Member {
   id: number;
@@ -23,6 +33,10 @@ interface Member {
 }
 
 type Screen = "group" | "member" | "main";
+
+function currencySymbol(code: string) {
+  return CURRENCIES.find((c) => c.code === code)?.symbol ?? code;
+}
 
 function App() {
   const [screen, setScreen] = useState<Screen>("group");
@@ -43,6 +57,7 @@ function App() {
   const [purchases, setPurchases] = useState<Purchase[]>([]);
   const [description, setDescription] = useState("");
   const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState("USD");
   const [splitWith, setSplitWith] = useState<string[]>([]);
   const [error, setError] = useState("");
 
@@ -149,6 +164,7 @@ function App() {
         body: JSON.stringify({
           description,
           amount: parseFloat(amount),
+          currency,
           paidBy: currentUser,
           splitWith,
         }),
@@ -303,17 +319,32 @@ function App() {
           />
         </label>
 
-        <label>
-          Amount ($)
-          <input
-            type="number"
-            step="0.01"
-            min="0"
-            value={amount}
-            onChange={(e) => setAmount(e.target.value)}
-            placeholder="0.00"
-          />
-        </label>
+        <div className="amount-row">
+          <label className="amount-field">
+            Amount
+            <input
+              type="number"
+              step="0.01"
+              min="0"
+              value={amount}
+              onChange={(e) => setAmount(e.target.value)}
+              placeholder="0.00"
+            />
+          </label>
+          <label className="currency-field">
+            Currency
+            <select
+              value={currency}
+              onChange={(e) => setCurrency(e.target.value)}
+            >
+              {CURRENCIES.map((c) => (
+                <option key={c.code} value={c.code}>
+                  {c.code} ({c.symbol})
+                </option>
+              ))}
+            </select>
+          </label>
+        </div>
 
         <div className="split-with-section">
           <label>Split with</label>
@@ -346,7 +377,7 @@ function App() {
               <div className="purchase-header">
                 <div>
                   <strong>{p.description}</strong>
-                  <span className="amount">${Number(p.amount).toFixed(2)}</span>
+                  <span className="amount">{currencySymbol(p.currency)}{Number(p.amount).toFixed(2)}</span>
                 </div>
                 <button
                   className="delete-btn"
@@ -361,7 +392,7 @@ function App() {
               <div className="splits">
                 {p.splits.map((s, i) => (
                   <span key={i} className="split-chip">
-                    {s.person}: ${Number(s.share_amount).toFixed(2)}
+                    {s.person}: {currencySymbol(p.currency)}{Number(s.share_amount).toFixed(2)}
                   </span>
                 ))}
               </div>

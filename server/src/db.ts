@@ -44,6 +44,7 @@ export async function initDb() {
         group_id INT NOT NULL,
         description VARCHAR(255) NOT NULL,
         amount DECIMAL(10, 2) NOT NULL,
+        currency VARCHAR(3) NOT NULL DEFAULT 'USD',
         paid_by VARCHAR(100) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
         FOREIGN KEY (group_id) REFERENCES \`groups\`(id) ON DELETE CASCADE

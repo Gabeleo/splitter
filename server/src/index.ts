@@ -84,21 +84,23 @@ app.post("/api/groups/:groupId/members", async (req, res) => {
 
 // Create a purchase
 app.post("/api/groups/:groupId/purchases", async (req, res) => {
-  const { description, amount, paidBy, splitWith } = req.body;
+  const { description, amount, currency, paidBy, splitWith } = req.body;
   const groupId = req.params.groupId;
 
+  const validCurrencies = ["USD", "EUR", "JPY", "GBP", "CNY", "COP"];
   if (!description || !amount || !paidBy || !splitWith || !Array.isArray(splitWith) || splitWith.length === 0) {
     res.status(400).json({ error: "Missing required fields: description, amount, paidBy, splitWith" });
     return;
   }
+  const selectedCurrency = currency && validCurrencies.includes(currency) ? currency : "USD";
 
   const conn = await pool.getConnection();
   try {
     await conn.beginTransaction();
 
     const [result] = await conn.query<ResultSetHeader>(
-      "INSERT INTO purchases (group_id, description, amount, paid_by) VALUES (?, ?, ?, ?)",
-      [groupId, description, amount, paidBy]
+      "INSERT INTO purchases (group_id, description, amount, currency, paid_by) VALUES (?, ?, ?, ?, ?)",
+      [groupId, description, amount, selectedCurrency, paidBy]
     );
     const purchaseId = result.insertId;
 
@@ -116,6 +118,7 @@ app.post("/api/groups/:groupId/purchases", async (req, res) => {
       id: purchaseId,
       description,
       amount,
+      currency: selectedCurrency,
       paidBy,
       splitWith: splitWith.map((person: string) => ({ person, shareAmount })),
     });

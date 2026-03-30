@@ -229,6 +229,39 @@ h1 {
   box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
 }
 
+/* ---- Amount + Currency row ---- */
+.amount-row {
+  display: flex;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.amount-field {
+  flex: 1;
+}
+
+.currency-field {
+  width: 140px;
+}
+
+.purchase-form select {
+  display: block;
+  width: 100%;
+  padding: 0.625rem;
+  margin-top: 0.25rem;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  font-size: 1rem;
+  background: white;
+  cursor: pointer;
+}
+
+.purchase-form select:focus {
+  outline: none;
+  border-color: #1a73e8;
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.2);
+}
+
 /* ---- Split-with chips ---- */
 .split-with-section {
   margin-bottom: 1rem;
