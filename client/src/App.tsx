@@ -596,21 +596,22 @@ function App() {
           )}
         </div>
 
-        {/* Floating selection bar */}
-        {selectedIds.size > 0 && (
-          <div className="selection-bar">
-            <span>{selectedIds.size} selected</span>
-            <div className="selection-bar-actions">
-              <button className="btn-primary" onClick={handleOpenBatchEdit}>
-                Edit Splits
-              </button>
-              <button className="btn-secondary" onClick={handleClearSelection}>
-                Clear
-              </button>
-            </div>
-          </div>
-        )}
       </div>
+
+      {/* Floating selection bar — outside scene-content to escape its stacking context */}
+      {selectedIds.size > 0 && (
+        <div className="selection-bar">
+          <span>{selectedIds.size} selected</span>
+          <div className="selection-bar-actions">
+            <button className="btn-primary" onClick={handleOpenBatchEdit}>
+              Edit Splits
+            </button>
+            <button className="btn-secondary" onClick={handleClearSelection}>
+              Clear
+            </button>
+          </div>
+        </div>
+      )}
 
       {/* Individual detail/edit modal */}
       {viewingPurchase && (
