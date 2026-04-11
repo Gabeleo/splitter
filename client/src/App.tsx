@@ -334,6 +334,27 @@ function App() {
     );
   };
 
+  // --- Balance summary ---
+  const balances = (() => {
+    const nets: Record<string, number> = {};
+    for (const p of purchases) {
+      const mySplit = p.splits.find((s) => s.person === currentUser);
+      if (p.paid_by === currentUser) {
+        for (const s of p.splits) {
+          if (s.person !== currentUser) {
+            nets[s.person] = (nets[s.person] || 0) + Number(s.share_amount);
+          }
+        }
+      } else if (mySplit) {
+        nets[p.paid_by] =
+          (nets[p.paid_by] || 0) - Number(mySplit.share_amount);
+      }
+    }
+    return Object.entries(nets)
+      .filter(([, amt]) => Math.abs(amt) >= 0.01)
+      .sort(([, a], [, b]) => b - a);
+  })();
+
   const formatDate = (dateStr: string) => {
     return new Date(dateStr).toLocaleDateString("en-US", {
       month: "short",
@@ -452,6 +473,28 @@ function App() {
             <button className="btn-back" onClick={handleLeaveGroup}>Leave</button>
           </div>
         </div>
+
+        {balances.length > 0 && (
+          <div className="balance-summary">
+            <h2>Your Balances</h2>
+            <div className="balance-list">
+              {balances.map(([person, amt]) => (
+                <div key={person} className="balance-row">
+                  <span className="balance-person">{person}</span>
+                  {amt > 0 ? (
+                    <span className="balance-owed-to-you">
+                      owes you ${amt.toFixed(2)}
+                    </span>
+                  ) : (
+                    <span className="balance-you-owe">
+                      you owe ${Math.abs(amt).toFixed(2)}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         <form className="purchase-form" onSubmit={handleSubmit}>
           <h2>New Purchase</h2>
