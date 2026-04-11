@@ -153,6 +153,95 @@ app.get("/api/groups/:groupId/purchases", async (req, res) => {
   }
 });
 
+// Batch update splits for multiple purchases
+app.put("/api/purchases/batch", async (req, res) => {
+  const { ids, splitWith } = req.body;
+
+  if (!ids || !Array.isArray(ids) || ids.length === 0 || !splitWith || !Array.isArray(splitWith) || splitWith.length === 0) {
+    res.status(400).json({ error: "Missing required fields: ids, splitWith" });
+    return;
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    for (const id of ids) {
+      const [rows] = await conn.query<RowDataPacket[]>(
+        "SELECT amount FROM purchases WHERE id = ?",
+        [id]
+      );
+      if (rows.length === 0) continue;
+
+      const purchaseAmount = Number(rows[0].amount);
+
+      await conn.query(
+        "UPDATE purchases SET updated_at = CURRENT_TIMESTAMP WHERE id = ?",
+        [id]
+      );
+
+      await conn.query("DELETE FROM purchase_splits WHERE purchase_id = ?", [id]);
+
+      const shareAmount = Number((purchaseAmount / splitWith.length).toFixed(2));
+      for (const person of splitWith) {
+        await conn.query(
+          "INSERT INTO purchase_splits (purchase_id, person, share_amount) VALUES (?, ?, ?)",
+          [id, person, shareAmount]
+        );
+      }
+    }
+
+    await conn.commit();
+    res.json({ success: true });
+  } catch (err) {
+    await conn.rollback();
+    console.error(err);
+    res.status(500).json({ error: "Failed to update purchases" });
+  } finally {
+    conn.release();
+  }
+});
+
+// Update a single purchase
+app.put("/api/purchases/:id", async (req, res) => {
+  const { description, amount, splitWith } = req.body;
+  const purchaseId = req.params.id;
+
+  if (!description || !amount || !splitWith || !Array.isArray(splitWith) || splitWith.length === 0) {
+    res.status(400).json({ error: "Missing required fields: description, amount, splitWith" });
+    return;
+  }
+
+  const conn = await pool.getConnection();
+  try {
+    await conn.beginTransaction();
+
+    await conn.query(
+      "UPDATE purchases SET description = ?, amount = ? WHERE id = ?",
+      [description, amount, purchaseId]
+    );
+
+    await conn.query("DELETE FROM purchase_splits WHERE purchase_id = ?", [purchaseId]);
+
+    const shareAmount = Number((amount / splitWith.length).toFixed(2));
+    for (const person of splitWith) {
+      await conn.query(
+        "INSERT INTO purchase_splits (purchase_id, person, share_amount) VALUES (?, ?, ?)",
+        [purchaseId, person, shareAmount]
+      );
+    }
+
+    await conn.commit();
+    res.json({ success: true });
+  } catch (err) {
+    await conn.rollback();
+    console.error(err);
+    res.status(500).json({ error: "Failed to update purchase" });
+  } finally {
+    conn.release();
+  }
+});
+
 // Delete a purchase
 app.delete("/api/purchases/:id", async (req, res) => {
   try {

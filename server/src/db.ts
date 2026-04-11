@@ -46,6 +46,7 @@ export async function initDb() {
         amount DECIMAL(10, 2) NOT NULL,
         paid_by VARCHAR(100) NOT NULL,
         created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+        updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
         FOREIGN KEY (group_id) REFERENCES \`groups\`(id) ON DELETE CASCADE
       )
     `);
@@ -58,6 +59,15 @@ export async function initDb() {
         FOREIGN KEY (purchase_id) REFERENCES purchases(id) ON DELETE CASCADE
       )
     `);
+    // Migration: add updated_at for existing databases
+    try {
+      await conn.query(
+        "ALTER TABLE purchases ADD COLUMN updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP AFTER created_at"
+      );
+    } catch (err: any) {
+      if (err.code !== "ER_DUP_FIELDNAME") throw err;
+    }
+
     console.log("Database tables initialized");
   } finally {
     conn.release();
