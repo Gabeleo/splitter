@@ -17,7 +17,7 @@ app.use(express.json());
 const clientDist = path.join(__dirname, "../../client/dist");
 app.use(express.static(clientDist));
 
-// Join or create a group by code
+// Join an existing group by code
 app.post("/api/groups/join", async (req, res) => {
   const { code } = req.body;
   if (!code || typeof code !== "string" || !code.trim()) {
@@ -28,19 +28,53 @@ app.post("/api/groups/join", async (req, res) => {
   const trimmed = code.trim().toLowerCase();
 
   try {
-    // Insert if not exists, then select
-    await pool.query(
-      "INSERT IGNORE INTO `groups` (code) VALUES (?)",
-      [trimmed]
-    );
     const [rows] = await pool.query<RowDataPacket[]>(
       "SELECT id, code FROM `groups` WHERE code = ?",
       [trimmed]
     );
+    if (rows.length === 0) {
+      res.status(404).json({ error: "Group not found" });
+      return;
+    }
     res.json(rows[0]);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to join group" });
+  }
+});
+
+// Create a new group
+app.post("/api/groups/create", async (req, res) => {
+  const { code } = req.body;
+  if (!code || typeof code !== "string" || !code.trim()) {
+    res.status(400).json({ error: "Group code is required" });
+    return;
+  }
+
+  const trimmed = code.trim().toLowerCase().replace(/[^a-z0-9\-_!@#]/g, "");
+  if (!trimmed) {
+    res.status(400).json({ error: "Code must contain letters, numbers, or - _ ! @ #" });
+    return;
+  }
+
+  try {
+    const [existing] = await pool.query<RowDataPacket[]>(
+      "SELECT id FROM `groups` WHERE code = ?",
+      [trimmed]
+    );
+    if (existing.length > 0) {
+      res.status(409).json({ error: "That group code is already taken" });
+      return;
+    }
+
+    const [result] = await pool.query<ResultSetHeader>(
+      "INSERT INTO `groups` (code) VALUES (?)",
+      [trimmed]
+    );
+    res.status(201).json({ id: result.insertId, code: trimmed });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Failed to create group" });
   }
 });
 

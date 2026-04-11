@@ -290,6 +290,20 @@ h2 {
 }
 
 /* ============================================
+   Create group divider (Screen 1)
+   ============================================ */
+
+.create-group-divider {
+  margin-top: 1.5rem;
+  padding-top: 1.25rem;
+  border-top: 1px solid #D5D0CA;
+}
+
+.create-group-divider .subtitle {
+  margin-bottom: 0.75rem;
+}
+
+/* ============================================
    Member selection (Screen 2)
    ============================================ */
 

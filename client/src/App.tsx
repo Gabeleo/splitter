@@ -32,6 +32,9 @@ function App() {
   const [groupCode, setGroupCode] = useState("");
   const [groupId, setGroupId] = useState<number | null>(null);
   const [groupError, setGroupError] = useState("");
+  const [showCreateGroup, setShowCreateGroup] = useState(false);
+  const [newGroupCode, setNewGroupCode] = useState("");
+  const [createGroupError, setCreateGroupError] = useState("");
 
   // Member state
   const [members, setMembers] = useState<Member[]>([]);
@@ -97,7 +100,8 @@ function App() {
         body: JSON.stringify({ code: groupCode }),
       });
       if (!res.ok) {
-        setGroupError("Failed to join group");
+        const data = await res.json();
+        setGroupError(data.error || "Group not found");
         return;
       }
       const group = await res.json();
@@ -106,6 +110,36 @@ function App() {
       setScreen("member");
     } catch {
       setGroupError("Failed to connect to server");
+    }
+  };
+
+  const handleCreateGroup = async (e: FormEvent) => {
+    e.preventDefault();
+    setCreateGroupError("");
+    if (!newGroupCode.trim()) {
+      setCreateGroupError("Enter a group code");
+      return;
+    }
+    try {
+      const res = await fetch(`${API_URL}/groups/create`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ code: newGroupCode }),
+      });
+      if (!res.ok) {
+        const data = await res.json();
+        setCreateGroupError(data.error || "Failed to create group");
+        return;
+      }
+      const group = await res.json();
+      setGroupCode(group.code);
+      setGroupId(group.id);
+      setShowCreateGroup(false);
+      setNewGroupCode("");
+      await fetchMembers(group.id);
+      setScreen("member");
+    } catch {
+      setCreateGroupError("Failed to connect to server");
     }
   };
 
@@ -373,21 +407,60 @@ function App() {
         <div className="scene-content">
           <h1>Splitter</h1>
           <div className="card centered">
-            <h2>Enter Group Code</h2>
-            <p className="subtitle">Join an existing group or create a new one with any code.</p>
+            <h2>Join a Group</h2>
+            <p className="subtitle">Enter an existing group code to join.</p>
             {groupError && <p className="error">{groupError}</p>}
             <form onSubmit={handleJoinGroup}>
               <input
                 type="text"
                 value={groupCode}
-                onChange={(e) => setGroupCode(e.target.value)}
+                onChange={(e) => setGroupCode(e.target.value.toLowerCase().replace(/[^a-z0-9\-_!@#]/g, ""))}
                 placeholder="e.g. weekend-trip"
                 autoFocus
               />
               <button type="submit" className="btn-primary">Join Group</button>
             </form>
+            <div className="create-group-divider">
+              <p className="subtitle">Don't have a group yet? Create one here and create a code word phrase.</p>
+              <button
+                className="btn-new-person"
+                onClick={() => {
+                  setShowCreateGroup(true);
+                  setCreateGroupError("");
+                  setNewGroupCode("");
+                }}
+              >
+                Create Group
+              </button>
+            </div>
           </div>
         </div>
+
+        {showCreateGroup && (
+          <div className="modal-overlay" onClick={() => setShowCreateGroup(false)}>
+            <div className="modal" onClick={(e) => e.stopPropagation()}>
+              <h2>Create a New Group</h2>
+              <p className="subtitle">Choose a code word phrase for your group. Share it with others so they can join.</p>
+              {createGroupError && <p className="error">{createGroupError}</p>}
+              <form onSubmit={handleCreateGroup}>
+                <label>
+                  Group Code
+                  <input
+                    type="text"
+                    value={newGroupCode}
+                    onChange={(e) => setNewGroupCode(e.target.value.toLowerCase().replace(/[^a-z0-9\-_!@#]/g, ""))}
+                    placeholder="e.g. weekend-trip"
+                    autoFocus
+                  />
+                </label>
+                <div className="modal-actions">
+                  <button type="submit" className="btn-primary">Create</button>
+                  <button type="button" className="btn-secondary" onClick={() => setShowCreateGroup(false)}>Cancel</button>
+                </div>
+              </form>
+            </div>
+          </div>
+        )}
       </div>
     );
   }
