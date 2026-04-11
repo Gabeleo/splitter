@@ -398,6 +398,53 @@ h2 {
 }
 
 /* ============================================
+   Balance summary (Screen 3)
+   ============================================ */
+
+.balance-summary {
+  background: var(--card);
+  border-radius: 4px;
+  padding: 1.25rem 1.5rem;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.06);
+  margin-bottom: 1.5rem;
+  border-left: 4px solid var(--red);
+}
+
+.balance-summary h2 {
+  margin-bottom: 0.75rem;
+}
+
+.balance-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.balance-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0.75rem;
+  background: var(--white);
+  border-radius: 4px;
+}
+
+.balance-person {
+  font-weight: 600;
+  color: var(--text);
+}
+
+.balance-owed-to-you {
+  font-weight: 600;
+  color: #2a7d2e;
+}
+
+.balance-you-owe {
+  font-weight: 600;
+  color: var(--red);
+}
+
+/* ============================================
    Purchase form (Screen 3)
    ============================================ */
 
