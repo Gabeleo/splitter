@@ -421,9 +421,8 @@ function App() {
               <button type="submit" className="btn-primary">Join Group</button>
             </form>
             <div className="create-group-divider">
-              <p className="subtitle">Don't have a group yet? Create one here and create a code word phrase.</p>
               <button
-                className="btn-new-person"
+                className="btn-create-group"
                 onClick={() => {
                   setShowCreateGroup(true);
                   setCreateGroupError("");
@@ -432,6 +431,7 @@ function App() {
               >
                 Create Group
               </button>
+              <p className="subtitle create-group-hint">Don't have a group yet? Create one here and create a code word phrase.</p>
             </div>
           </div>
         </div>

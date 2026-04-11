@@ -299,8 +299,27 @@ h2 {
   border-top: 1px solid #D5D0CA;
 }
 
-.create-group-divider .subtitle {
-  margin-bottom: 0.75rem;
+.btn-create-group {
+  width: 70%;
+  padding: 0.5rem;
+  background: var(--red);
+  color: var(--card);
+  border: none;
+  border-radius: 4px;
+  font-size: 0.77rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.02em;
+  transition: background 0.15s;
+}
+
+.btn-create-group:hover {
+  background: #A82024;
+}
+
+.create-group-hint {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
 }
 
 /* ============================================
